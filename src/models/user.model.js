@@ -1,5 +1,7 @@
 const mongoose = require("mongoose")
-const {Schema} = mongoose
+const Schema = mongoose.Schema
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const userSchema = new Schema({
     name: {
@@ -27,10 +29,6 @@ const userSchema = new Schema({
         type: String, // cloudinary url
         required: [true, "Password is required"],
     },
-    profilePic: {
-        type: String, // cloudinary url
-        required: true,
-    },
     orders: [
         {
             type: Schema.Types.ObjectId,
@@ -45,6 +43,31 @@ const userSchema = new Schema({
     ]
 }, {timestamps: true})
 
-const User = mongoose.Schema("User", userSchema)
+userSchema.pre("save", async function(next){
+    if(!this.isModified("password")) return next();
+
+    this.password = await bcrypt.hash(this.password, 10)
+    next();
+})
+
+userSchema.methods.isPasswordCorrect = async function(password){
+    return await bcrypt.compare(password, this.password)
+}
+
+userSchema.methods.generateToken = function(){
+    return jwt.sign(
+        {
+            _id: this._id,
+            name: this.name,
+            email: this.email,
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        {
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY
+        }
+    )
+}
+
+const User = mongoose.model("User", userSchema)
 
 module.exports = User;

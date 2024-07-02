@@ -101,7 +101,7 @@ const loginUser = async (req, res) => {
         }
 
         return res.status(200)
-        .cookie("access token", accessToken, options)
+        .cookie("accessToken", accessToken, options)
         .json(new APIResponse(200, {loggedInUser, accessToken}, "User logged in successfully."))
     } catch (error) {
         console.log("User Route :: Login User Controller :: Error", error)
@@ -110,9 +110,15 @@ const loginUser = async (req, res) => {
 
 const logoutUser = async(req, res) => {
     try{
+        console.log(req, "logout request")
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
 
+        return res.status(200).clearCookie("accessToken", options).json(new APIResponse(200, {}, "User logut successfully."))
     } catch (error){
-
+        console.log("UserController :: logoutUser :: error: ", error)
     }
 }
 

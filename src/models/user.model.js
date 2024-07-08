@@ -40,7 +40,15 @@ const userSchema = new Schema({
             type: Schema.Types.ObjectId,
             ref: "foodItem"
         }
-    ]
+    ],
+    isAdmin: {
+        type: Boolean,
+        default: false
+    },
+    isOwner: {
+        type: Boolean,
+        default: false
+    }
 }, {timestamps: true})
 
 userSchema.pre("save", async function(next){

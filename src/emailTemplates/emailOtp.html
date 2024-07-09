@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Confirmation for FOOD TOWN</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: #333;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            margin-bottom: 1rem;
+        }
+        .logo img {
+            width: 200px; /* Adjust the size of the logo */
+        }
+        .welcome-message {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        .message {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        .otp {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ff6347;
+            margin-bottom: 1rem;
+        }
+        .footer {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #777;
+        }
+        .footer a {
+            color: #ff6347;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="https://res.cloudinary.com/djuarsvxl/image/upload/v1720420061/navLogo_lxb8gg.png" alt="FOOD TOWN Logo">
+        </div>
+        <div class="welcome-message">Hi, {{userName}}!</div>
+        <div class="message">Your OTP for FOOD TOWN {{reason}} is:</div>
+        <div class="otp">{{otp}}</div>
+        <div class="message">Please use this OTP to complete your registration.</div>
+        <div class="footer">
+            <p>Feel free to contact us:</p>
+            <p>Email: <a href="mailto:mohammadashraf7005@gmail.com">mohammadashraf7005@gmail.com</a></p>
+            <p>Phone: +91 9666657005</p>
+        </div>
+    </div>
+</body>
+</html>

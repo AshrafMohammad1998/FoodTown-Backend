@@ -29,7 +29,7 @@ const sendWelcomeEmail = async (data) => {
 
   const mailOptions = {
     from: "mohammadashraf7005@gmail.com",
-    to: userEmail, 
+    to: userEmail,
     subject: "Welcome to Food Town",
     html: modifiedHtmlContent,
     // attachments: [
@@ -43,9 +43,8 @@ const sendWelcomeEmail = async (data) => {
 
   await transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      return console.log("Error while sending email",error);
+      return console.log("Error while sending email", error);
     }
-    console.log("Email sent: " + info.response);
   });
 };
 
@@ -238,10 +237,67 @@ const getUserDetails = async (req, res) => {
   }
 };
 
+const sendOtpEmail = async (data) => {
+  const { emailOTP, userEmail, username, otpFor } = data;
+
+  const emailSubject = otpFor === "email verification" ? "Email Verification" : "Reset Password"
+
+  const htmlFilePath = path.join(
+      __dirname,
+      "../emailTemplates",
+      "emailOtp.html"
+  );
+
+  const htmlContent = fs.readFileSync(htmlFilePath, "utf-8");
+
+  const modifiedHtmlContent = htmlContent
+      .replace("{{userName}}", username)
+      .replace("{{otp}}", emailOTP)
+      .replace("{{reason}}", otpFor);
+
+  const mailOptions = {
+      from: "mohammadashraf7005@gmail.com",
+      to: userEmail,
+      subject: emailSubject,
+      html: modifiedHtmlContent,
+      // attachments: [
+      //     {
+      //         filename: 'logo.png',
+      //         path: path.join(__dirname, 'logo.png'),
+      //         cid: 'logo' // same cid value as in the HTML img src
+      //     }
+      // ]
+  };
+
+  await transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+          return console.log("Error while sending email", error);
+      }
+  });
+};
+
+const sendEmailOtpController = async (req, res) => {
+  const { emailOTP, email, username, otpFor } = req.body;
+
+  const emailData = { emailOTP, userEmail: email, username, otpFor };
+  try {
+      sendOtpEmail(emailData);
+      return res
+          .status(200)
+          .json(new APIResponse(200, {}, "Email OTP sent successfully"));
+  } catch (error) {
+      console.log(
+          "User controller :: send email otp controller :: Error :",
+          error
+      );
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   logoutUser,
   getUserDetails,
   testEmail,
+  sendEmailOtpController,
 };

@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "mohammadashraf7005@gmail.com",
-    pass: "oqawzoxekcvizpsl",
+    pass: process.env.EMAIL_PASSWORD,
   },
 });
 
@@ -132,12 +132,15 @@ const registerUser = async (req, res) => {
   try {
     const { name, password, email, mobile } = req.body;
 
-    const {isValidUser, errorStatusCode, errorMessage} = await validateUserDetails(name, password, email, mobile);
+    const { isValidUser, errorStatusCode, errorMessage } =
+      await validateUserDetails(name, password, email, mobile);
 
-    if (!isValidUser){
-      return res.status(errorStatusCode).json(new APIError(errorStatusCode, errorMessage))
+    if (!isValidUser) {
+      return res
+        .status(errorStatusCode)
+        .json(new APIError(errorStatusCode, errorMessage));
     }
-    
+
     const user = await User.create({
       name,
       password,
@@ -323,10 +326,32 @@ const sendEmailOtpController = async (req, res) => {
     return res
       .status(200)
       .json(new APIResponse(200, {}, "Email OTP sent successfully"));
-
   } catch (error) {
     console.log(
       "User controller :: send email otp controller :: Error :",
+      error
+    );
+  }
+};
+
+const validateUserController = async (req, res) => {
+  try {
+    const { name, email, mobile, password } = req.body;
+    const { isValidUser, errorStatusCode, errorMessage } =
+      await validateUserDetails(name, password, email, mobile);
+
+    if (!isValidUser) {
+      return res
+        .status(errorStatusCode)
+        .json(new APIError(errorStatusCode, errorMessage));
+    }
+
+    return res
+      .status(errorStatusCode)
+      .json(new APIResponse(errorStatusCode, {}, errorMessage));
+  } catch (error) {
+    console.log(
+      "User controller :: Validate User Controller :: Error :",
       error
     );
   }
@@ -339,4 +364,5 @@ module.exports = {
   getUserDetails,
   testEmail,
   sendEmailOtpController,
+  validateUserController
 };

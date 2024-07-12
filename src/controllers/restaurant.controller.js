@@ -126,25 +126,12 @@ const registerRestaurant = async (req, res) => {
     } = req.body;
     const emailData = {restaurantName, email}
 
-    const existingUser = await User.findOne({
-      $or: [{ name }, { email: email.toLowerCase() }, { mobile }],
-    });
-    if (existingUser) {
-      return res
-        .status(400)
-        .json(
-          new APIError(
-            400,
-            "User with the same name, email, or mobile already exists."
-          )
-        );
-    }
-
     const user = await User.create({
       name,
       password,
       email: email.toLowerCase(),
       mobile,
+      isOwner: true,
     });
 
     if (!user) {
@@ -231,8 +218,33 @@ const uploadRestaurantImage = async (req, res) => {
   }
 };
 
+const getRestaurantDetails = async (req, res) => {
+  const {userId} = req.params
+  try{
+    if (!userId) {
+      return res.status(400).json(new APIError(400, "UserId is required."))
+    }
+
+    const restaurant = await Restaurant.findOne({
+      owner: userId
+    })
+
+    if(!restaurant){
+      return res.status(409).json(new APIError(409, "Restaurant not found"))
+    }
+
+    return res.status(200).json(new APIResponse(200, restaurant, "Restaurant data fetched successfully."))
+  } catch(error){
+    console.log(
+      "Restaurant Controller :: Get Restaurant Details :: Error ",
+      error
+    );
+  }
+}
+
 module.exports = {
   verifyHotelExists,
   registerRestaurant,
   uploadRestaurantImage,
+  getRestaurantDetails,
 };

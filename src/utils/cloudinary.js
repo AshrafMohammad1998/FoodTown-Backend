@@ -39,7 +39,6 @@ const uploadToCloudinary = async (localFile) => {
 const deleteFromCloudinary = async (publicId, resourceType) => {
 
     try {
-        console.log(publicId, "PID")
         const result = await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
         return result
     } catch (error) {

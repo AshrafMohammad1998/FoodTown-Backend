@@ -28,7 +28,10 @@ const sendWelcomeEmail = async (data) => {
 
   const htmlContent = fs.readFileSync(htmlFilePath, "utf-8");
 
-  const modifiedHtmlContent = htmlContent.replace("{{restaurantName}}", restaurantName);
+  const modifiedHtmlContent = htmlContent.replace(
+    "{{restaurantName}}",
+    restaurantName
+  );
 
   const mailOptions = {
     from: "mohammadashraf7005@gmail.com",
@@ -124,7 +127,7 @@ const registerRestaurant = async (req, res) => {
       logoUrl,
       logoPublicId,
     } = req.body;
-    const emailData = {restaurantName, email}
+    const emailData = { restaurantName, email };
 
     const user = await User.create({
       name,
@@ -154,17 +157,30 @@ const registerRestaurant = async (req, res) => {
       owner: user._id,
     });
 
-    sendWelcomeEmail(emailData)
+    sendWelcomeEmail(emailData);
 
     return res
       .status(200)
-      .json(new APIResponse(200,{ user, restaurant}, "User & Restaurant created successfully."));
+      .json(
+        new APIResponse(
+          200,
+          { user, restaurant },
+          "User & Restaurant created successfully."
+        )
+      );
 
     // TODO: send email on registration
   } catch (error) {
     if (error.code === 11000) {
-        res.status(400).json(new APIError(400, "Duplicate key error: User or Restaurant with the same key already exists."));
-      } 
+      res
+        .status(400)
+        .json(
+          new APIError(
+            400,
+            "Duplicate key error: User or Restaurant with the same key already exists."
+          )
+        );
+    }
     console.log(
       "Restaurant Controller :: Register New Restaurant :: Error ",
       error
@@ -219,32 +235,129 @@ const uploadRestaurantImage = async (req, res) => {
 };
 
 const getRestaurantDetails = async (req, res) => {
-  const {userId} = req.params
-  try{
+  const { userId } = req.params;
+  try {
     if (!userId) {
-      return res.status(400).json(new APIError(400, "UserId is required."))
+      return res.status(400).json(new APIError(400, "UserId is required."));
     }
 
     const restaurant = await Restaurant.findOne({
-      owner: userId
-    })
+      owner: userId,
+    });
 
-    if(!restaurant){
-      return res.status(409).json(new APIError(409, "Restaurant not found"))
+    if (!restaurant) {
+      return res.status(409).json(new APIError(409, "Restaurant not found"));
     }
 
-    return res.status(200).json(new APIResponse(200, restaurant, "Restaurant data fetched successfully."))
-  } catch(error){
+    return res
+      .status(200)
+      .json(
+        new APIResponse(
+          200,
+          restaurant,
+          "Restaurant data fetched successfully."
+        )
+      );
+  } catch (error) {
     console.log(
       "Restaurant Controller :: Get Restaurant Details :: Error ",
       error
     );
   }
-}
+};
+
+const getAllUserRestaurants = async (req, res) => {
+  const { page } = req.query || 1; 
+  
+  const itemsPerPage = 8;
+  const skipCount = (page - 1) * itemsPerPage; 
+
+  try {
+
+    const restaurants = await Restaurant.find()
+      .skip(skipCount)
+      .limit(itemsPerPage)
+
+      return res.status(200).json(new APIResponse(200, restaurants, "Restaurants fetched successfully"))
+
+  } catch (error) {
+    console.log(
+      "Restaurant Controller :: Get All User Restaurants :: Error ",
+      error
+    );
+  }
+};
+
+const getRestaurantWithDishes = async (req, res) => {
+  const { restaurantId } = req.params;
+  try {
+    if (!restaurantId) {
+      return res.status(400).json(new APIError(400, "restaurant id is required."));
+    }
+
+    const restaurant = await Restaurant.aggregate([
+      {
+        $match: {_id: new mongoose.Types.ObjectId(restaurantId)}
+      },
+      {
+        $lookup: {
+          from: "dishes",
+          localField: "_id",
+          foreignField: "restaurant",
+          as: "dishesData"
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "owner",
+          foreignField: "_id",
+          as: "ownerData",
+          pipeline: [
+            {
+              $project: {
+                name: 1,
+                email: 1,
+              }
+            }
+          ]
+        }
+      },
+      {
+        $unwind: "$ownerData"
+      }
+    ])
+
+    // const restaurant = await Restaurant.findOne({
+    //   owner: userId,
+    // });
+
+    // if (!restaurant) {
+    //   return res.status(409).json(new APIError(409, "Restaurant not found"));
+    // }
+
+    return res
+      .status(200)
+      .json(
+        new APIResponse(
+          200,
+          restaurant,
+          "Restaurant data fetched successfully."
+        )
+      );
+  } catch (error) {
+    console.log(
+      "Restaurant Controller :: Get Restaurant with Dishes :: Error ",
+      error
+    );
+  }
+};
 
 module.exports = {
   verifyHotelExists,
   registerRestaurant,
   uploadRestaurantImage,
   getRestaurantDetails,
+  getAllUserRestaurants,
+  getRestaurantWithDishes
 };

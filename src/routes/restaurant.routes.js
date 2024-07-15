@@ -5,7 +5,9 @@ const {
   verifyHotelExists,
   registerRestaurant,
   uploadRestaurantImage,
-  getRestaurantDetails
+  getRestaurantDetails,
+  getAllUserRestaurants,
+  getRestaurantWithDishes
 } = require("../controllers/restaurant.controller");
 
 const restaurantRouter = Router();
@@ -20,6 +22,14 @@ restaurantRouter
   .route("/uploadRestaurantImg")
   .post(upload.single("restaurantImg"), uploadRestaurantImage);
 
-restaurantRouter.route("/getRestaurantData/:userId").get(verifyJWT, getRestaurantDetails)
+restaurantRouter
+  .route("/getRestaurantData/:userId")
+  .get(verifyJWT, getRestaurantDetails);
+
+restaurantRouter
+  .route("/getAllRestaurants")
+  .get(verifyJWT, getAllUserRestaurants);
+
+restaurantRouter.route("/restaurantDishes/:restaurantId").get(getRestaurantWithDishes)
 
 module.exports = restaurantRouter;

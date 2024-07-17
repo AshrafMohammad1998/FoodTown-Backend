@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 const APIError = require("../utils/APIError");
 const APIResponse = require("../utils/APIResponse");
 const Bag = require("../models/bag.model");
+const Dish = require("../models/dish.model");
+
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const getBagData = async (req, res) => {
   try {
@@ -137,10 +140,25 @@ const checkDiffRestaurantInBag = async (req, res) => {
   try {
     const bag = await Bag.findOne({ userId });
     if (bag) {
-      return res.status(200).json(new APIResponse(200, { currentRestaurantId: bag.restaurantId }, "Restaurant details checked successfully."));
+      return res
+        .status(200)
+        .json(
+          new APIResponse(
+            200,
+            { currentRestaurantId: bag.restaurantId },
+            "Restaurant details checked successfully."
+          )
+        );
     } else {
-      return res.status(200).json(new APIResponse(200, { currentRestaurantId: null }, "Restaurant details checked successfully."));
-
+      return res
+        .status(200)
+        .json(
+          new APIResponse(
+            200,
+            { currentRestaurantId: null },
+            "Restaurant details checked successfully."
+          )
+        );
     }
   } catch (error) {
     console.log("Bag Controller :: Check Bag :: Error :", error);
@@ -207,6 +225,68 @@ const addBag = async (req, res) => {
   }
 };
 
+const getBagDishes = async (req, res) => {
+  const { dishIds } = req.params;
+  const dishIdsArray = dishIds.split(",");
+
+  try {
+    // Convert the dishIdsArray to ObjectId for Mongoose query
+    // const dishObjectIds = dishIdsArray.map(id => new mongoose.Types.ObjectId(id));
+
+    const dishObjectIds = dishIdsArray
+      .map((id) => id.trim()) // Trim whitespace
+      .filter((id) => mongoose.Types.ObjectId.isValid(id)) // Check if the id is valid
+      .map((id) => new mongoose.Types.ObjectId(id)); // Convert to ObjectId
+
+    // Find dishes in the database
+    const dishes = await Dish.find({ _id: { $in: dishObjectIds } });
+
+    // Send the response back
+    return res
+      .status(200)
+      .json(new APIResponse(200, dishes, "Bag Dishes fetched successfully"));
+  } catch (error) {
+    console.log("Bag Controller :: Get Bag Dishes :: Error:", error);
+  }
+};
+
+const setPaymentForm = async (req, res) => {
+  const { mergedDishesArray } = req.body;
+
+  // Log the request body to verify its contents
+
+  if (!mergedDishesArray) {
+    return res.status(400).json({ error: "mergedDishesArray is required" });
+  }
+
+  try {
+    const lineItems = mergedDishesArray.map((product) => ({
+      price_data: {
+        currency: "inr",
+        product_data: {
+          name: product.dishName,
+          images: [product.dishImage.url],
+        },
+        unit_amount: Math.round(product.amount * 100),
+      },
+      quantity: product.quantity,
+    }));
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      line_items: lineItems,
+      success_url: `${process.env.CORS_ORIGIN}/payment-success`,
+      cancel_url: `${process.env.CORS_ORIGIN}/payment-failure`,
+    });
+
+    res.json({ id: session.id });
+  } catch (error) {
+    console.error("Error creating Stripe session:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   addBag,
   getBagData,
@@ -214,4 +294,6 @@ module.exports = {
   decrementQuantity,
   checkDiffRestaurantInBag,
   clearBag,
+  getBagDishes,
+  setPaymentForm,
 };

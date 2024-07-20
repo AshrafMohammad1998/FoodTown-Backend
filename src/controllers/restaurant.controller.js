@@ -13,7 +13,7 @@ const User = require("../models/user.model");
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-        user: "mubashir2u@gmail.com",
+        user: "mohammadashraf7005@gmail.com",
         pass: process.env.EMAIL_PASSWORD,
     },
 });
@@ -32,7 +32,7 @@ const sendWelcomeEmail = async (data) => {
     const modifiedHtmlContent = htmlContent.replace("{{restaurantName}}", restaurantName);
 
     const mailOptions = {
-        from: "mubashir2u@gmail.com",
+        from: "mohammadashraf7005@gmail.com",
         to: email,
         subject: "Welcome to Food Town",
         html: modifiedHtmlContent,

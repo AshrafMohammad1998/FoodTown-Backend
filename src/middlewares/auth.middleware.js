@@ -18,7 +18,7 @@ const verifyJWT = async (req, res, next) => {
         next()
 
     } catch (error) {
-        console.log("Auth Middleware :: verify jwt :: error", error)
+        console.log("Auth Middleware :: verify jwt :: error:", error)
     }
 }
 

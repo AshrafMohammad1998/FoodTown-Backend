@@ -18,6 +18,10 @@ const bagSchema = new mongoose.Schema({
         quantity: {
             type: Number,
             default: 1
+        },
+        dishAmount: {
+            type: Number,
+            required:true
         }
     }]
 

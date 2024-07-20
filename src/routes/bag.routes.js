@@ -6,7 +6,7 @@ const bagRouter = Router()
 bagRouter.use(verifyJWT)
 
 bagRouter.route("/addBag/:restaurantId").post(addBag)
-bagRouter.route("/getBagData").get(getBagData)
+bagRouter.route("/getBagData/:userId").get(getBagData)
 bagRouter.route("/incrementDishQuantity").put(incrementQuantity)
 bagRouter.route("/decrementDishQuantity").put(decrementQuantity)
 bagRouter.route('/checkBag/:userId').get(checkDiffRestaurantInBag)

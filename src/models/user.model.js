@@ -29,18 +29,6 @@ const userSchema = new Schema({
         type: String, // cloudinary url
         required: [true, "Password is required"],
     },
-    orders: [
-        {
-            type: Schema.Types.ObjectId,
-            ref : "order"
-        } 
-    ],
-    wishlist: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: "foodItem"
-        }
-    ],
     isAdmin: {
         type: Boolean,
         default: false
@@ -48,6 +36,9 @@ const userSchema = new Schema({
     isOwner: {
         type: Boolean,
         default: false
+    },
+    address:{
+        type:String
     }
 }, {timestamps: true})
 

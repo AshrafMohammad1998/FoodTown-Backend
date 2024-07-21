@@ -334,6 +334,59 @@ const sendEmailOtpController = async (req, res) => {
   }
 };
 
+const resetPasswordEmailOTPController = async (req, res) => {
+  const { emailOTP, email, otpFor } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json(new APIError(404, "Email not found"));
+  }
+
+  const emailData = {
+    emailOTP,
+    username: user.name,
+    otpFor,
+    userEmail: email,
+  };
+
+  sendOtpEmail(emailData);
+
+  return res
+    .status(200)
+    .json(new APIResponse(200, {}, "OTP sent successfull."));
+};
+
+const updateUserPassword = async (req, res) => {
+  const { email, password } = req.body;
+
+  const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])/;
+
+  if (password.length < 8 || !passwordRegex.test(password)) {
+    return res
+      .status(400)
+      .json(
+        new APIError(
+          400,
+          "Password must be at least 8 characters long and contain at least one uppercase letter and one special character."
+        )
+      );
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json(new APIError(404, "User not found"));
+  }
+  user.password = password;
+
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new APIResponse(200, {}, "OTP sent successfull."));
+};
+
 const validateUserController = async (req, res) => {
   try {
     const { name, email, mobile, password } = req.body;
@@ -357,6 +410,69 @@ const validateUserController = async (req, res) => {
   }
 };
 
+const editUserProfile = async (req, res) => {
+  try {
+    const { name, mobile } = req.body;
+    const userId = req.user._id;
+
+    const userName = await User.findOne({ name });
+
+    if (userName && !userName._id.equals(userId)) {
+      return res
+        .status(409)
+        .json(new APIResponse(409, {}, "Username already exists."));
+    }
+
+    const userMobile = await User.findOne({ mobile });
+
+    if (userMobile && !userMobile._id.equals(userId)) {
+      return res
+        .status(409)
+        .json(new APIResponse(409, {}, "Mobile Number already exists."));
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          name,
+          mobile,
+        },
+      },
+      { new: true }
+    ).select("-password");
+
+    return res
+      .status(200)
+      .json(new APIResponse(200, updatedUser, "Profile Updated successfully."));
+  } catch (error) {
+    console.log("User Routes :: Edit Profile :: Error:", error);
+  }
+};
+
+const addAddress = async (req, res) => {
+  try {
+    const { address } = req.body;
+    const userId = req.user._id;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          address
+        }
+      },
+      {new:true}
+    ).select("-password")
+
+    return res
+      .status(200)
+      .json(new APIResponse(200, user, "Profile Updated successfully."));
+  } catch (error) {
+    console.log("User Routes :: Edit Profile :: Error:", error);
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -364,5 +480,9 @@ module.exports = {
   getUserDetails,
   testEmail,
   sendEmailOtpController,
-  validateUserController
+  validateUserController,
+  resetPasswordEmailOTPController,
+  updateUserPassword,
+  editUserProfile,
+  addAddress
 };

@@ -10,6 +10,13 @@ const getBagData = async (req, res) => {
  const {userId} = req.params
   try {
     const bagData = await Bag.findOne({ userId });
+
+    if (!bagData){
+      return res
+      .status(404)
+      .json(new APIError(404, "No bag data found."));
+    }
+    
     return res
       .status(200)
       .json(new APIResponse(200, bagData, "Bag data fetched successfully."));
